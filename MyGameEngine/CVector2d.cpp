@@ -18,6 +18,17 @@ CVector2d::CVector2d(float x, float y)
 	this->y = y;
 }
 
+CVector2d::CVector2d(ImVec2 ImVec)
+{
+	this->x = ImVec.x;
+	this->y = ImVec.y;
+}
+
+ImVec2 CVector2d::ToImVec2()
+{
+	return { this->x, this->y };
+}
+
 bool CVector2d::operator==(const CVector2d& vector2d) const
 {
 	return (this->x == vector2d.x) && (this->y == vector2d.y);

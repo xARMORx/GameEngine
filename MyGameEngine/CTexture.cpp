@@ -3,8 +3,11 @@
 CTexture::CTexture()
 {
 	this->m_vSize = { 0.f, 0.f };
-	this->m_szName = {  };
 	this->m_pD3DTexture = { nullptr };
+}
+
+CTexture::CTexture(LPDIRECT3DTEXTURE9 pD3DTexture, CVector2d vSize)
+{
 }
 
 void CTexture::SetD3DTexture(LPDIRECT3DTEXTURE9 pD3DTexture)
@@ -24,5 +27,5 @@ void CTexture::SetSize(const CVector2d& vSize)
 
 LPDIRECT3DTEXTURE9 CTexture::GetD3DTexture()
 {
-	return this->m_pD3DTexture
+	return this->m_pD3DTexture;
 }

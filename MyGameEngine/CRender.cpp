@@ -5,6 +5,10 @@
 #include "CLog.h"
 #include "CTexture.h"
 #include "CVector2d.h"
+#include "CBaseComponents.h"
+#include "CComponentSettings.h"
+#include "CViewPort.h"
+#include "CDebugConsole.h"
 
 CRender* g_pRender = nullptr;
 
@@ -16,7 +20,8 @@ CRender::CRender() {
 	this->m_nResizeHeight = { 0 };
 	this->m_tD3DParametrs = {};
 	this->m_nBackgroundColor = { 0xFFFFFFFF };
-    this->m_pFileExplorer = new CFileManager();
+    this->m_pFileManager = new CFileManager();
+    this->m_pFileExporer = new CFileExplorer();
 }
 
 bool CRender::CreateDeviceD3D(HWND hWnd) {
@@ -64,68 +69,73 @@ void CRender::Begin() {
 
 void CRender::Draw()
 {
-    if (m_pFileExplorer->IsOpened())
-    {
-        m_pFileExplorer->Draw();
+    if (this->m_pFileManager->IsOpened()) {
+        this->m_pFileManager->Draw();
     }
-    ImGuiIO& io = ImGui::GetIO();
-    
-    ImGui::SetNextWindowPos(ImVec2(0.f, 0.f));
-    ImGui::SetNextWindowSize({ static_cast<float>(this->m_tD3DParametrs.BackBufferWidth), static_cast<float>(this->m_tD3DParametrs.BackBufferHeight) });
-    ImGui::Begin("Window", 0, ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_MenuBar | ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoBackground | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoScrollWithMouse | ImGuiWindowFlags_NoScrollbar );
-    if (ImGui::BeginMenuBar())
-    {
-        if (ImGui::BeginMenu("File"))
-        {
+    static bool dockspaceOpen = true;
+    static ImGuiDockNodeFlags dockspaceFlags = ImGuiDockNodeFlags_None;
+
+    // Увімкнення повноекранного режиму для DockSpace
+    ImGuiViewport* viewport = ImGui::GetMainViewport();
+    ImGui::SetNextWindowPos(viewport->Pos);
+    ImGui::SetNextWindowSize(viewport->Size);
+    ImGui::SetNextWindowViewport(viewport->ID);
+
+    ImGuiWindowFlags windowFlags = ImGuiWindowFlags_MenuBar | ImGuiWindowFlags_NoDocking;
+    windowFlags |= ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove;
+    windowFlags |= ImGuiWindowFlags_NoBringToFrontOnFocus | ImGuiWindowFlags_NoNavFocus;
+
+    ImGui::Begin("DockSpace Demo", nullptr, windowFlags);
+
+    // Створення або отримання DockSpace
+    ImGuiID dockspaceID = ImGui::GetID("MyDockSpace");
+    ImGui::DockSpace(dockspaceID, ImVec2(0.0f, 0.0f), dockspaceFlags);
+
+    // Розподіл простору докінгу
+    static bool firstTime = true;
+    if (firstTime) {
+        firstTime = false;
+
+        // Очистка старого розподілу
+        ImGui::DockBuilderRemoveNode(dockspaceID);
+        ImGui::DockBuilderAddNode(dockspaceID, ImGuiDockNodeFlags_DockSpace);
+        ImGui::DockBuilderSetNodeSize(dockspaceID, viewport->Size);
+
+        ImGuiID dockTop = ImGui::DockBuilderSplitNode(dockspaceID, ImGuiDir_Up, 0.65f, nullptr, &dockspaceID);
+        ImGuiID dockBottom = dockspaceID; // Нижній вузол
+
+        ImGuiID dockLeft = ImGui::DockBuilderSplitNode(dockTop, ImGuiDir_Left, 0.20f, nullptr, &dockTop);
+        ImGuiID dockMiddle = ImGui::DockBuilderSplitNode(dockTop, ImGuiDir_Left, 0.75f, nullptr, &dockTop);
+        ImGuiID dockRight = dockTop;
+
+        ImGui::DockBuilderDockWindow("Base Components", dockLeft);
+        ImGui::DockBuilderDockWindow("ViewPort", dockMiddle);
+        ImGui::DockBuilderDockWindow("Component Settings", dockRight);
+        ImGui::DockBuilderDockWindow("File Explorer", dockBottom);
+        ImGui::DockBuilderDockWindow("Debug Console", dockBottom);
+
+        ImGui::DockBuilderFinish(dockspaceID);
+    }
+
+    if (ImGui::BeginMenuBar()) {
+        if (ImGui::BeginMenu("File")) {
             if (ImGui::MenuItem("Open"))
-            {
-                m_pFileExplorer->Open();
-                CLog::AddMessage(DEBUG_MESSAGE, "You click on Open");
+                this->m_pFileManager->Open();
+
+            if (ImGui::MenuItem("Close")) {
             }
-            if (ImGui::MenuItem("Close"))
-                CLog::AddMessage(DEBUG_MESSAGE, "You click on Close");
-            if (ImGui::MenuItem("Save"))
-                CLog::AddMessage(DEBUG_MESSAGE, "You click on Save");
             ImGui::EndMenu();
         }
-
-        if (ImGui::BeginMenu("Edit"))
-        {
-            if (ImGui::MenuItem("Copy"))
-                CLog::AddMessage(DEBUG_MESSAGE, "You click on Copy");
-            if (ImGui::MenuItem("Paste"))
-                CLog::AddMessage(DEBUG_MESSAGE, "You click on Paste");
-            if (ImGui::MenuItem("Settings"))
-                CLog::AddMessage(DEBUG_MESSAGE, "You click on Settings");
-            ImGui::EndMenu();
-        }
-
         ImGui::EndMenuBar();
     }
-    float fMenuBarHeight = ImGui::GetItemRectSize().y;
-    ImVec2 vWindowSize = ImGui::GetWindowSize();
-
-    ImGui::SetCursorPos({0.f, fMenuBarHeight});
-    ImGui::BeginChild("Base components", ImVec2(vWindowSize.x * 0.2083f, (vWindowSize.y * 0.6296f) - fMenuBarHeight), ImGuiChildFlags_Border);
-    ImGui::Text("Base components");
-    ImGui::EndChild();
-
-    ImGui::SetCursorPos({ vWindowSize.x * 0.7916f, fMenuBarHeight });
-    ImGui::BeginChild("ComponentSettings", ImVec2(vWindowSize.x * 0.2093f, (vWindowSize.y * 0.6296f) - fMenuBarHeight), ImGuiChildFlags_Border);
-    ImGui::Text("ComponentSettings");
-    ImGui::EndChild();
-
-    ImGui::SetCursorPos({ vWindowSize.x * 0.2083f, fMenuBarHeight });
-    ImGui::BeginChild("ViewPort", ImVec2(vWindowSize.x * 0.5838f, (vWindowSize.y * 0.6296f) - fMenuBarHeight), ImGuiChildFlags_Border);
-    ImGui::Text("ViewPort");
-    ImGui::EndChild();
-
-    ImGui::SetCursorPos({ 0.f, (vWindowSize.y * 0.6296f) });
-    ImGui::BeginChild("File Explorer", ImVec2(vWindowSize.x, (vWindowSize.y) - (vWindowSize.y * 0.6290f)), ImGuiChildFlags_Border);
-    ImGui::Text("File Explorer");
-    ImGui::EndChild();
 
     ImGui::End();
+
+    CBaseComponents::Draw();
+    CViewPort::Draw();
+    CComponentSettings::Draw();
+    this->m_pFileExporer->Draw();
+    g_pDebugConsole->Draw();
 }
 
 bool CRender::IsWantResize() const
@@ -235,6 +245,7 @@ void CRender::InitImGui(HWND hWnd) const
     ImGuiIO& io = ImGui::GetIO();
     io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;
     io.ConfigFlags |= ImGuiConfigFlags_NavEnableGamepad;
+    io.ConfigFlags |= ImGuiConfigFlags_DockingEnable;
     io.IniFilename = nullptr;
 
     ImVec4* colors = ImGui::GetStyle().Colors;

@@ -12,6 +12,7 @@
 #pragma comment(lib, "d3dx9.lib")
 
 #include "CFileManager.h"
+#include "CFileExplorer.h"
 
 extern IMGUI_IMPL_API LRESULT ImGui_ImplWin32_WndProcHandler(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam);
 
@@ -25,7 +26,8 @@ private:
 	unsigned int m_nResizeHeight;
 	D3DPRESENT_PARAMETERS m_tD3DParametrs;
 	D3DCOLOR m_nBackgroundColor;
-	CFileManager* m_pFileExplorer;
+	CFileManager* m_pFileManager;
+	CFileExplorer* m_pFileExporer;
 public:
 	CRender();
 

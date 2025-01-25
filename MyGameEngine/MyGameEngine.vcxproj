@@ -137,10 +137,13 @@
     <ClInclude Include="CBaseComponents.h" />
     <ClInclude Include="CComponent.h" />
     <ClInclude Include="CComponentSettings.h" />
+    <ClInclude Include="CDebugConsole.h" />
+    <ClInclude Include="CFileExplorer.h" />
     <ClInclude Include="CFileManager.h" />
     <ClInclude Include="CLog.h" />
     <ClInclude Include="CRect.h" />
     <ClInclude Include="CRegistry.h" />
+    <ClInclude Include="CSprite.h" />
     <ClInclude Include="CTexture.h" />
     <ClInclude Include="CVector2d.h" />
     <ClInclude Include="CViewPort.h" />
@@ -162,9 +165,12 @@
     <ClCompile Include="CBaseComponents.cpp" />
     <ClCompile Include="CComponent.cpp" />
     <ClCompile Include="CComponentSettings.cpp" />
+    <ClCompile Include="CDebugConsole.cpp" />
+    <ClCompile Include="CFileExplorer.cpp" />
     <ClCompile Include="CFileManager.cpp" />
     <ClCompile Include="CRect.cpp" />
     <ClCompile Include="CRegistry.cpp" />
+    <ClCompile Include="CSprite.cpp" />
     <ClCompile Include="CTexture.cpp" />
     <ClCompile Include="CVector2d.cpp" />
     <ClCompile Include="CViewPort.cpp" />

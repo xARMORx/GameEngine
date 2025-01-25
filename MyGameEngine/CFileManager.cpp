@@ -5,6 +5,7 @@
 #include <iostream>
 
 #include "CLog.h"
+#include "CDebugConsole.h"
 
 #ifdef DeleteFile
 #undef DeleteFile
@@ -39,6 +40,7 @@ CFileManager::CFileManager()
 	this->m_szCurrentFile = {};
 	this->m_SystemPaths = {};
 	this->m_vFilesList = {};
+	this->m_nSelectedFile = {};
 	this->InitSystemPaths();
 }
 
@@ -64,6 +66,7 @@ std::wstring CFileManager::GetCurrentPath()
 
 void CFileManager::OpenFile()
 {
+	std::filesystem::directory_entry entry = this->m_vFilesList[this->m_nSelectedFile];
 }
 
 void CFileManager::DeleteFile()
@@ -85,6 +88,7 @@ void CFileManager::PasteFile()
 void CFileManager::UpdateFileList()
 {
 	this->m_vFilesList.clear();
+	this->m_nSelectedFile = -1;
 	for (const auto& it : std::filesystem::directory_iterator(this->m_szCurrentPath))
 	{
 		this->m_vFilesList.push_back(it);
@@ -96,6 +100,7 @@ void CFileManager::Draw()
 	ImGuiIO& io = ImGui::GetIO();
 	ImGui::PushStyleVar(ImGuiStyleVar_WindowRounding, 7.f);
 	ImGui::PushStyleVar(ImGuiStyleVar_WindowTitleAlign, ImVec2(0.5f, 0.5f));
+	ImGui::PushStyleVar(ImGuiStyleVar_WindowBorderSize, 1);
 	ImGui::SetNextWindowPos(ImVec2(io.DisplaySize.x * 0.5f, io.DisplaySize.y * 0.5f), ImGuiCond_FirstUseEver, ImVec2(0.5f, 0.5f));
 	ImGui::SetNextWindowSize(ImVec2(io.DisplaySize.x * 0.5f, io.DisplaySize.y * 0.5f), ImGuiCond_FirstUseEver);
 	ImGui::Begin("File Manager", &this->m_bEnable, ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoScrollWithMouse | ImGuiWindowFlags_NoScrollbar);
@@ -106,7 +111,15 @@ void CFileManager::Draw()
 	ImGui::Button("->", ImVec2(20.f, 20.f));
 	ImGui::SameLine();
 	ImGui::PushItemWidth(vWindowSize.x - (ImGui::GetStyle().ItemSpacing.x * 4.f) - (20.f * 2.f));
-	ImGui::InputText("##FileExplorerPath", &this->m_szCurrentPath);
+	if (ImGui::InputText("##FileExplorerPath", &this->m_szCurrentPath, ImGuiInputTextFlags_EnterReturnsTrue)) {
+		if (std::filesystem::is_directory(this->m_szCurrentPath)) {
+			this->UpdateFileList();
+		}
+		else {
+			g_pDebugConsole->AddErrorMessage("Path: %s is not a directory!", this->m_szCurrentPath.c_str());
+			CLog::AddMessage(ERROR_MESSAGE, "Path: %s is not a directory!", this->m_szCurrentPath.c_str());
+		}
+	}
 	ImGui::BeginChild("Base Path", ImVec2(vWindowSize.x * 0.1583f, vWindowSize.y - (ImGui::GetStyle().ItemSpacing.y * 4.f) - (20.f * 2.f)));
 	for (auto& it : this->m_SystemPaths)
 	{
@@ -121,19 +134,35 @@ void CFileManager::Draw()
 	ImGui::SameLine();
 	ImGui::BeginChild("CurrentPath", ImVec2((vWindowSize.x - (vWindowSize.x * 0.1583f)) - (ImGui::GetStyle().ItemSpacing.x * 3.f), vWindowSize.y - (ImGui::GetStyle().ItemSpacing.y * 4.f) - (20.f * 2.f)));
 
+	/*
+	Here rendered columns with info of files/folderes
+	*/
 	ImGui::Columns(2);
 	for (int i{}; i < this->m_vFilesList.size(); i++)
 	{
-		if (ImGui::Selectable(this->m_vFilesList[i].path().filename().string().c_str(), false, ImGuiSelectableFlags_SpanAllColumns | ImGuiSelectableFlags_AllowDoubleClick))
-		{
-			CLog::AddMessage(DEBUG_MESSAGE, "You clicked on item: %s", this->m_vFilesList[i].path().filename().string().c_str());
+		ImGui::Selectable(this->m_vFilesList[i].path().filename().string().c_str(), i == this->m_nSelectedFile ? true : false, ImGuiSelectableFlags_SpanAllColumns);
+		if (ImGui::IsItemHovered()) {
+			if (ImGui::IsMouseDoubleClicked(0)) {
+				g_pDebugConsole->AddDebugMessage("You clicked on item: %s", this->m_vFilesList[i].path().filename().string().c_str());
+				CLog::AddMessage(DEBUG_MESSAGE, "You clicked on item: %s", this->m_vFilesList[i].path().filename().string().c_str());
+				if (this->m_vFilesList[i].is_directory()) {
+					this->m_szCurrentPath = this->m_vFilesList[i].path().string();
+					this->UpdateFileList();
+					break;
+				}
+			}
+			if (ImGui::IsMouseClicked(ImGuiMouseButton_Left, false)) {
+				this->m_nSelectedFile = i;
+			}
 		}
+		
 		ImGui::NextColumn();
 		ImGui::Selectable(std::string(std::to_string(this->m_vFilesList[i].file_size() / 1024) + " KB##" + std::to_string(i)).c_str());
 		ImGui::NextColumn();
+		
 	}
 
 	ImGui::EndChild();
 	ImGui::End();
-	ImGui::PopStyleVar(2);
+	ImGui::PopStyleVar(3);
 }

@@ -8,6 +8,7 @@ private:
 	std::string m_szCurrentPath;
 	std::wstring m_szCurrentFile;
 	bool m_bEnable;
+	std::uint32_t m_nSelectedFile;
 	std::map<std::wstring, std::wstring> m_SystemPaths;
 	std::vector<std::filesystem::directory_entry> m_vFilesList;
 

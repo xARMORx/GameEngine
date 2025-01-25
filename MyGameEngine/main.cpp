@@ -3,6 +3,7 @@
 #include <thread>
 #include "CWindow.h"
 #include "CRender.h"
+#include "CDebugConsole.h"
 
 LRESULT WndProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam) {
     if (ImGui_ImplWin32_WndProcHandler(hWnd, uMsg, wParam, lParam))
@@ -51,6 +52,7 @@ int WinMain(
     int       nShowCmd
 )
 {
+    g_pDebugConsole = new CDebugConsole();
 #if _DEBUG
     if (!AllocConsole())
     {

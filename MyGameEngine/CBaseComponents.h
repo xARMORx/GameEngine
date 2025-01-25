@@ -1,7 +1,8 @@
 #pragma once
+#include "CRender.h"
+
 class CBaseComponents
 {
-
 public:
-	void Draw();
+	static void Draw();
 };

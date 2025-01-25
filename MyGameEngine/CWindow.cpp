@@ -28,13 +28,9 @@ void CWindow::CreateHWND(WNDPROC wndProc)
 	::RegisterClassExW(&m_tWindowClass);
 	this->m_hWnd = ::CreateWindowW(m_tWindowClass.lpszClassName, L"GameEngine", WS_OVERLAPPEDWINDOW, 0, 0, 1920, 1080, nullptr, nullptr, m_tWindowClass.hInstance, nullptr);
 	if (this->m_hWnd)	
-	{
 		CLog::AddMessage(DEBUG_MESSAGE, "hWnd created: 0x%llX", this->m_hWnd);
-	}
 	else
-	{
 		CLog::AddMessage(ERROR_MESSAGE, "hWnd isn't created!");
-	}
 }
 
 void CWindow::Show()
