@@ -2,6 +2,13 @@
 #include <filesystem>
 #include <map>
 
+#ifdef DeleteFile
+#undef DeleteFile
+#endif
+#ifdef CopyFile
+#undef CopyFile
+#endif
+
 class CFileManager
 {
 private:
@@ -28,3 +35,5 @@ public:
 	void UpdateFileList();
 	void Draw();
 };
+
+extern CFileManager* g_pFileManager;

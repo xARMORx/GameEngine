@@ -9,6 +9,9 @@
 #include "CComponentSettings.h"
 #include "CViewPort.h"
 #include "CDebugConsole.h"
+#include "CFileExplorer.h"
+#include "CFileManager.h"
+#include "CBaseComponents.h"
 
 CRender* g_pRender = nullptr;
 
@@ -20,8 +23,6 @@ CRender::CRender() {
 	this->m_nResizeHeight = { 0 };
 	this->m_tD3DParametrs = {};
 	this->m_nBackgroundColor = { 0xFFFFFFFF };
-    this->m_pFileManager = new CFileManager();
-    this->m_pFileExporer = new CFileExplorer();
 }
 
 bool CRender::CreateDeviceD3D(HWND hWnd) {
@@ -69,13 +70,12 @@ void CRender::Begin() {
 
 void CRender::Draw()
 {
-    if (this->m_pFileManager->IsOpened()) {
-        this->m_pFileManager->Draw();
+    if (g_pFileManager->IsOpened()) {
+        g_pFileManager->Draw();
     }
     static bool dockspaceOpen = true;
     static ImGuiDockNodeFlags dockspaceFlags = ImGuiDockNodeFlags_None;
 
-    // Увімкнення повноекранного режиму для DockSpace
     ImGuiViewport* viewport = ImGui::GetMainViewport();
     ImGui::SetNextWindowPos(viewport->Pos);
     ImGui::SetNextWindowSize(viewport->Size);
@@ -87,22 +87,19 @@ void CRender::Draw()
 
     ImGui::Begin("DockSpace Demo", nullptr, windowFlags);
 
-    // Створення або отримання DockSpace
     ImGuiID dockspaceID = ImGui::GetID("MyDockSpace");
     ImGui::DockSpace(dockspaceID, ImVec2(0.0f, 0.0f), dockspaceFlags);
 
-    // Розподіл простору докінгу
     static bool firstTime = true;
     if (firstTime) {
         firstTime = false;
 
-        // Очистка старого розподілу
         ImGui::DockBuilderRemoveNode(dockspaceID);
         ImGui::DockBuilderAddNode(dockspaceID, ImGuiDockNodeFlags_DockSpace);
         ImGui::DockBuilderSetNodeSize(dockspaceID, viewport->Size);
 
         ImGuiID dockTop = ImGui::DockBuilderSplitNode(dockspaceID, ImGuiDir_Up, 0.65f, nullptr, &dockspaceID);
-        ImGuiID dockBottom = dockspaceID; // Нижній вузол
+        ImGuiID dockBottom = dockspaceID;
 
         ImGuiID dockLeft = ImGui::DockBuilderSplitNode(dockTop, ImGuiDir_Left, 0.20f, nullptr, &dockTop);
         ImGuiID dockMiddle = ImGui::DockBuilderSplitNode(dockTop, ImGuiDir_Left, 0.75f, nullptr, &dockTop);
@@ -120,9 +117,10 @@ void CRender::Draw()
     if (ImGui::BeginMenuBar()) {
         if (ImGui::BeginMenu("File")) {
             if (ImGui::MenuItem("Open"))
-                this->m_pFileManager->Open();
+                g_pFileManager->Open();
 
             if (ImGui::MenuItem("Close")) {
+                exit(0);
             }
             ImGui::EndMenu();
         }
@@ -131,10 +129,10 @@ void CRender::Draw()
 
     ImGui::End();
 
-    CBaseComponents::Draw();
+    g_pBaseComponents->Draw();
     CViewPort::Draw();
     CComponentSettings::Draw();
-    this->m_pFileExporer->Draw();
+    g_pFileExplorer->Draw();
     g_pDebugConsole->Draw();
 }
 

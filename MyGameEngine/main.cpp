@@ -4,6 +4,9 @@
 #include "CWindow.h"
 #include "CRender.h"
 #include "CDebugConsole.h"
+#include "CFileExplorer.h"
+#include "CFileManager.h"
+#include "CBaseComponents.h"
 
 LRESULT WndProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam) {
     if (ImGui_ImplWin32_WndProcHandler(hWnd, uMsg, wParam, lParam))
@@ -52,50 +55,11 @@ int WinMain(
     int       nShowCmd
 )
 {
-    g_pDebugConsole = new CDebugConsole();
-#if _DEBUG
-    if (!AllocConsole())
-    {
-        std::cerr << "Failed to allocate console!" << std::endl;
-        return 1;
-    }
-
-    std::locale::global(std::locale("ru_RU.UTF-8"));
-
-    SetConsoleOutputCP(CP_UTF8);
-
-    FILE* pFile;
-    if (freopen_s(&pFile, "CONOUT$", "w", stdout) != 0 || freopen_s(&pFile, "CONOUT$", "w", stderr) != 0)
-    {
-        std::cerr << "Failed to redirect stdout or stderr!" << std::endl;
-        return 1;
-    }
-
-    HANDLE hConsole = GetStdHandle(STD_OUTPUT_HANDLE);
-    if (hConsole == INVALID_HANDLE_VALUE)
-    {
-        std::cerr << "Failed to get console handle!" << std::endl;
-        return 1;
-    }
-
-    DWORD dwMode;
-    if (!GetConsoleMode(hConsole, &dwMode))
-    {
-        std::cerr << "Failed to get console mode!" << std::endl;
-        return 1;
-    }
-    dwMode |= ENABLE_VIRTUAL_TERMINAL_PROCESSING;
-    if (!SetConsoleMode(hConsole, dwMode))
-    {
-        std::cerr << "Failed to set console mode!" << std::endl;
-        return 1;
-    }
-
-
-#endif
-
     g_pRender = new CRender();
     g_pWindow = new CWindow();
+    g_pDebugConsole = new CDebugConsole();
+
+    std::locale::global(std::locale("ru_RU.UTF-8"));
 
     g_pWindow->CreateHWND(WndProc);
     if (!g_pRender->CreateDeviceD3D(g_pWindow->GetHWND())) {
@@ -103,6 +67,10 @@ int WinMain(
         g_pWindow->Unregister();
         return 1;
     }
+
+    g_pFileExplorer = new CFileExplorer();
+    g_pFileManager = new CFileManager();
+    g_pBaseComponents = new CBaseComponents();
 
     g_pWindow->Show();
 

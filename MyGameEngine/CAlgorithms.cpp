@@ -36,3 +36,11 @@ std::string CAlgorithms::ConvertWideCharToString(const std::wstring& wstr)
     delete[] buffer;
     return retn;
 }
+
+std::filesystem::path CAlgorithms::GetExecutableDirectory()
+{
+    char buffer[MAX_PATH];
+    GetModuleFileNameA(nullptr, buffer, MAX_PATH);
+    std::filesystem::path exePath(buffer);
+    return exePath.parent_path();
+}

@@ -1,15 +1,17 @@
 #pragma once
 #include <string>
 #include <sstream>
+#include <filesystem>
 
 class CAlgorithms
 {
 public:
 	static std::wstring ConvertStringToWideChar(const std::string& str);
 	static std::string ConvertWideCharToString(const std::wstring& wstr);
+    static std::filesystem::path GetExecutableDirectory();
 
     template<typename ... Args>
-    static std::string string_format(const std::string& format, Args ... args)
+    static std::string StringFormat(const std::string& format, Args ... args)
     {
         int size_s = std::snprintf(nullptr, 0, format.c_str(), args ...) + 1; // Extra space for '\0'
         if (size_s <= 0) { throw std::runtime_error("Error during formatting."); }

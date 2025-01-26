@@ -47,13 +47,13 @@ public:
     void AddEntry(const std::string& szText, const ImU32& startColor);
     template <typename ... Args>
     void AddDebugMessage(const std::string& szFormat, Args... args) {
-        std::string debugString = CAlgorithms::string_format(szFormat, args...);
+        std::string debugString = CAlgorithms::StringFormat(szFormat, args...);
         this->AddEntry("[Debug]: {FFFFFF}" + debugString, 0xFF99B080);
     }
 
     template <typename ... Args>
     void AddErrorMessage(const std::string& szFormat, Args... args) {
-        std::string errorString = CAlgorithms::string_format(szFormat, args...);
+        std::string errorString = CAlgorithms::StringFormat(szFormat, args...);
         this->AddEntry("[Error]: {FFFFFF}" + errorString, 0xFF3C15D6);
     }
 };

@@ -3,9 +3,11 @@
 #include "CRegistry.h"
 #include "CAlgorithms.h"
 #include <iostream>
+#include <set>
 
 #include "CLog.h"
 #include "CDebugConsole.h"
+#include "CFileExplorer.h"
 
 #ifdef DeleteFile
 #undef DeleteFile
@@ -13,6 +15,8 @@
 #ifdef CopyFile
 #undef CopyFile
 #endif
+
+CFileManager* g_pFileManager = { nullptr };
 
 void CFileManager::InitSystemPaths()
 {
@@ -67,6 +71,19 @@ std::wstring CFileManager::GetCurrentPath()
 void CFileManager::OpenFile()
 {
 	std::filesystem::directory_entry entry = this->m_vFilesList[this->m_nSelectedFile];
+
+	static const std::set<std::string> imageExtensions = {
+		".jpg", ".jpeg", ".png"
+	};
+
+	if (entry.is_regular_file()) {
+		std::string extension = entry.path().extension().string();
+		std::transform(extension.begin(), extension.end(), extension.begin(), ::tolower);
+		if (imageExtensions.find(extension) != imageExtensions.end()) {
+			g_pFileExplorer->AddToContentPath(entry);
+
+		}
+	}
 }
 
 void CFileManager::DeleteFile()
@@ -143,11 +160,13 @@ void CFileManager::Draw()
 		ImGui::Selectable(this->m_vFilesList[i].path().filename().string().c_str(), i == this->m_nSelectedFile ? true : false, ImGuiSelectableFlags_SpanAllColumns);
 		if (ImGui::IsItemHovered()) {
 			if (ImGui::IsMouseDoubleClicked(0)) {
-				g_pDebugConsole->AddDebugMessage("You clicked on item: %s", this->m_vFilesList[i].path().filename().string().c_str());
-				CLog::AddMessage(DEBUG_MESSAGE, "You clicked on item: %s", this->m_vFilesList[i].path().filename().string().c_str());
 				if (this->m_vFilesList[i].is_directory()) {
 					this->m_szCurrentPath = this->m_vFilesList[i].path().string();
 					this->UpdateFileList();
+					break;
+				}
+				else {
+					this->OpenFile();
 					break;
 				}
 			}
